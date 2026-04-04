@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    
+    <header id="auth-section" style="text-align: center; margin: 20px 0;">
+        <button id="button-login">Iniciar sesión con Google</button>
+        <button id="button-logout" class="hidden">Cerrar sesión</button>
+        <div id="user-info"></div>
+    </header>
+
+    <main id="app-main" class="hidden">
+        <div class="main-card">
+            <div class="card-header">
+                <h1>To-Do List</h1>
+                <div class="input-group">
+                    <input type="text" name="activity-input" id="activity-input" placeholder="Añadi tu tarea...">
+                    <button class="activity-button">Add</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <ul class="activity-list">
+                </ul>
+                <dialog class="activityDialog">
+                    <h2 class="dialog-h2">Ingresa la nueva tarea</h2>
+                    <div class="dialog-input-group">
+                        <input type="text" name="editable-activity-input" id="editable-activity-input" placeholder="Edita tu tarea...">
+                    </div>
+                    <form method="dialog" class="activity-button-form">
+                        <button type="button" class="editable-activity-button">Editar</button>
+                    </form>
+                </dialog>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://www.gstatic.com/firebasejs/8.9.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.9.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.9.1/firebase-firestore.js"></script>
+
+    <script>
+        // Aquí deberás poner tus propias credenciales de Firebase
+        var firebaseConfig = {
+            apiKey: "AIzaSyCoG7LnYDZ9Hq-jvEhnDaNVDx96bek_ApA",
+            authDomain: "todo-f9a42.firebaseapp.com",
+            projectId: "todo-f9a42",
+            storageBucket: "todo-f9a42.firebasestorage.app",
+            messagingSenderId: "875214037886",
+            appId: "1:875214037886:web:8cf276b3b63e8e9383092f"
+        };
+        firebase.initializeApp(firebaseConfig);
+    </script>
+
+    <script src="script.js" type="module"></script>
+</body>
+</html>
