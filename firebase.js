@@ -28,10 +28,10 @@ export async function getItems(uid){
 }
 
 
-export async function markItem(item, state){
+export async function markItem(item, state, uid){
     let docId;
     try {
-        const doc = await db.collection("todos").where("id", "==", item).get();
+        const doc = await db.collection("todos").where("id", "==", item).where("userid", "==", uid).get();
 
         doc.forEach(i => {
             docId = i.id;
@@ -48,10 +48,10 @@ export async function markItem(item, state){
     }
 }
 
-export async function updateText(item, text){
+export async function updateText(item, text, uid){
     let docId;
     try {
-        const doc = await db.collection("todos").where("id", "==", item).get();
+        const doc = await db.collection("todos").where("id", "==", item).where("userid", "==", uid).get();
 
         doc.forEach(i => {
             docId = i.id;
@@ -68,10 +68,10 @@ export async function updateText(item, text){
     }
 }
 
-export async function deleteItems(item) {
+export async function deleteItems(item, uid) {
     let docId;
     try {
-        const doc = await db.collection("todos").where("id", "==", item).get();
+        const doc = await db.collection("todos").where("id", "==", item).where("userid", "==", uid).get();
 
         doc.forEach(i => {
             docId = i.id;

@@ -175,7 +175,7 @@ activityList.addEventListener("click", async (e) => {
         try {
             let item = task.id
             e.target.parentElement.remove()
-            await deleteItems(item)
+            await deleteItems(item, currentUser.uid)
             loadTask()
         } catch (error) {
             console.error(error)
@@ -192,7 +192,7 @@ activityList.addEventListener("click", async (e) => {
             e.target.closest("li").classList.toggle("false")
             let item = task.id
             task.completed = !task.completed
-            await markItem(item, task.completed)
+            await markItem(item, task.completed, currentUser.uid)
         } catch (error) {
             console.error(error)
         }
@@ -218,4 +218,6 @@ async function addTask(text) {
         loadTask()
     }
 }
+
+
 
