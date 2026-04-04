@@ -92,9 +92,19 @@ activityButton.addEventListener("click", async (e) => {
     e.preventDefault();
     const text = activityInput.value;
 
-    if (text !== "") {
-        await addTask(text); // CORRECCIÓN: Agregar await
+    if (text.trim() !== "") {
+        await addTask(text.trim());
         activityInput.value = "";
+    } else {
+        if (document.body.querySelector("#wrong") === null) {
+            let wrong = document.createElement("p")
+            wrong.textContent = "Ingresa un valor valido"
+            wrong.id = "wrong"
+            document.querySelector(".card-header").appendChild(wrong)
+            setTimeout(() => {
+                wrong.remove()
+            }, 1500)
+        }
     }
 });
 
@@ -189,31 +199,6 @@ activityList.addEventListener("click", async (e) => {
     }
 });
 
-
-
-
-
-// activityList.addEventListener("click", async (e) => {
-//     let state;
-//     let elementlist = e.target.closest("li")
-//     let element = e.target
-//     if (e.target.classList.contains("delete-icon")|| e.target.classList.contains("edit-icon")) {
-//         return 
-//     }else{
-//     let task = tasks.find(t => elementlist.dataset.id == t.id);
-//     try {
-//         elementlist.classList.toggle("true")
-//         elementlist.classList.toggle("false")
-//         console.log(element.classList)
-//         let item = task.id
-//         state = elementlist.className
-//         await markItem(item, state)
-//     } catch (error) {
-//         console.error(error)
-//     }}
-
-
-// });
 
 async function addTask(text) {
 
