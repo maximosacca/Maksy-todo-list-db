@@ -327,6 +327,9 @@ input::placeholder {
     .activityDialog input {
         max-width: 100%;
     }
+    .activityDialog h2 {
+        font-size: larger;
+    }
 
     /* 4. Achicamos sutilmente la info del usuario para que ocupe menos espacio visual arriba */
     #user-info img {
