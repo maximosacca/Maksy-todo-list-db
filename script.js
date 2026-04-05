@@ -23,6 +23,8 @@ const buttonLogin = document.querySelector("#button-login");
 
 const buttonLogout = document.querySelector("#button-logout")
 
+const closingModalSpam = document.querySelector("#close-dialog")
+
 let currentUser;
 let tasks = [];
 let editableTasks = null
@@ -199,6 +201,9 @@ activityList.addEventListener("click", async (e) => {
     }
 });
 
+closingModalSpam.addEventListener("click", function(){
+    activityDialog.close()
+})
 
 async function addTask(text) {
 
