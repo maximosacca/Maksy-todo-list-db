@@ -60,7 +60,6 @@ buttonLogin.addEventListener("click", async (e) => {
     try {
         currentUser = await login();
     } catch (error) {
-        throw new Error(error);
         console.error(error)
     }
 });
@@ -135,16 +134,50 @@ function renderTasks() {
     activityList.innerHTML = html;
 }
 
+editableInput.addEventListener("keydown", async (e) => {
+    let task = editableTasks
+    if (e.key === "Enter") {
+        if (editableInput.value.trim() != "") {
+            if (editableInput.value.trim() != task.text) {
+                let item = task.id
+                let text = editableInput.value
+                await updateText(item, text, currentUser.uid)
+                loadTask()
+                activityDialog.close()
+            } else {
+                if (document.body.querySelector("#wrong-dialog") === null) {
+                    let wrongDialog = document.createElement("p")
+                    wrongDialog.textContent = "El texto ingresado es igual a la tarea anterior"
+                    wrongDialog.id = "wrong-dialog"
+                    document.querySelector(".dialog-h2").appendChild(wrongDialog)
+                    setTimeout(() => {
+                        wrongDialog.remove()
+                    }, 1500)
+                }
+            }
+        } else {
+            if (document.body.querySelector("#wrong-dialog") === null) {
+                let wrongDialog = document.createElement("p")
+                wrongDialog.textContent = "Ingresa un texto valido"
+                wrongDialog.id = "wrong-dialog"
+                document.querySelector(".dialog-h2").appendChild(wrongDialog)
+                setTimeout(() => {
+                    wrongDialog.remove()
+                }, 1500)
+            }
+        }
+    }
+})
+
 editableButton.addEventListener("click", async (e) => {
     let task = editableTasks
     if (editableInput.value.trim() != "") {
         if (editableInput.value.trim() != task.text) {
             let item = task.id
             let text = editableInput.value
-            await updateText(item, text)
+            await updateText(item, text, currentUser.uid)
             loadTask()
             activityDialog.close()
-            console.log(editableTasks)
         } else {
             if (document.body.querySelector("#wrong-dialog") === null) {
                 let wrongDialog = document.createElement("p")
@@ -201,7 +234,7 @@ activityList.addEventListener("click", async (e) => {
     }
 });
 
-closingModalSpam.addEventListener("click", function(){
+closingModalSpam.addEventListener("click", function () {
     activityDialog.close()
 })
 
