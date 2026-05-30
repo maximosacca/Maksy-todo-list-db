@@ -4,8 +4,8 @@ export async function insert(item){
     try {
         const response = await db.collection("todos").add(item)
     } catch (error) {
-        throw new Error(error)
         console.error(error)
+        throw new Error(error)
     }
 }
 
