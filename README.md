@@ -1,0 +1,1 @@
+Aplicación web de gestión de tareas construida con HTML, CSS y JavaScript vanilla. Incluye autenticación de usuarios con Firebase Auth y persistencia de datos con Firestore en tiempo real. Desarrollada por cuenta propia como proyecto de práctica para consolidar manipulación del DOM, lógica CRUD y consumo de servicios externos.
