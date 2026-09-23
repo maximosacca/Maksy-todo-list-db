@@ -25,9 +25,14 @@ const buttonLogout = document.querySelector("#button-logout")
 
 const closingModalSpam = document.querySelector("#close-dialog")
 
+const dayTabsContainer = document.querySelector("#day-tabs")
+
+const dayTabButtons = document.querySelectorAll(".day-tab")
+
 let currentUser;
 let tasks = [];
 let editableTasks = null
+let selectedDay = new Date().getDay() // 0 = Domingo ... 6 = Sábado, arranca en el día de hoy
 
 firebase.auth().onAuthStateChanged(user => {
     if (user) {
@@ -52,9 +57,23 @@ function init() {
   <span>${currentUser.displayName}</span>
   `;
 
-
+    updateActiveTab();
     loadTask();
 }
+
+function updateActiveTab() {
+    dayTabButtons.forEach((btn) => {
+        btn.classList.toggle("active", Number(btn.dataset.day) === selectedDay)
+    })
+}
+
+dayTabsContainer.addEventListener("click", (e) => {
+    const btn = e.target.closest(".day-tab")
+    if (!btn) return;
+    selectedDay = Number(btn.dataset.day)
+    updateActiveTab()
+    renderTasks()
+});
 
 buttonLogin.addEventListener("click", async (e) => {
     try {
@@ -122,15 +141,18 @@ async function loadTask() {
 
 function renderTasks() {
     let html = "";
-    tasks.forEach((task) => {
-        html += `
+    tasks
+        // Las tareas viejas que no tengan día asignado se muestran en "hoy" en vez de desaparecer
+        .filter((task) => (task.dayOfWeek ?? new Date().getDay()) === selectedDay)
+        .forEach((task) => {
+            html += `
     <li class="${task.completed}" data-id="${task.id}">
         <span data-id="${task.id}">${task.text}</span>
         <span class="delete-icon" data-id="${task.id}"></span>
         <span class="edit-icon" data-id="${task.id}"></span>
     </li> 
     `;
-    });
+        });
     activityList.innerHTML = html;
 }
 
@@ -244,7 +266,8 @@ async function addTask(text) {
         id: getUUID(),
         text: text,
         completed: false,
-        userid: currentUser.uid
+        userid: currentUser.uid,
+        dayOfWeek: selectedDay
 
     }
     tasks.push(todo)
@@ -256,6 +279,3 @@ async function addTask(text) {
         loadTask()
     }
 }
-
-
-
