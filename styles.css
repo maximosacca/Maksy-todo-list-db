@@ -34,18 +34,14 @@ body {
     display: flex;
     justify-content: center;
     gap: 6px;
-    padding: 0 20px 15px;
+    padding: 0 12px 15px;
     overflow-x: auto;
-}
-
-.day-tabs::-webkit-scrollbar {
-  display: none; /* Oculta la barra de scroll */
 }
 
 .day-tab {
     flex: 0 0 auto;
     height: 32px;
-    padding: 0 12px;
+    padding: 0 10px;
     border: none;
     border-radius: 8px;
     background: #e4efee;
@@ -94,7 +90,7 @@ input::placeholder {
     background: #74aaa8;
 }
 
-.card-body {
+.card-body{
     padding: 0 20px;
 }
 
@@ -110,7 +106,7 @@ input::placeholder {
 
 .activity-list li {
     list-style: none;
-    padding: 12px 60px 5px 25px;
+    padding: 12px 90px 5px 25px;
     user-select: none;
     cursor: pointer;
     position: relative;
@@ -134,18 +130,19 @@ input::placeholder {
     transition: all 200ms ease-in-out;
 }
 
-.activity-list li:hover::before {
+.activity-list li:hover::before{
     transform: scale(1.2);
 }
 
 
 .activity-list li:has(.delete-icon:hover)::before,
+.activity-list li:has(.move-icon:hover)::before,
 .activity-list li:has(.edit-icon:hover)::before {
     transform: scale(1);
 }
 
 
-.delete-icon {
+.delete-icon{
     position: absolute;
     height: 22px;
     width: 22px;
@@ -158,12 +155,12 @@ input::placeholder {
     transition: all 300ms ease-in-out;
 }
 
-.delete-icon:hover {
+.delete-icon:hover{
     transform: translateY(-2px);
     cursor: pointer;
 }
 
-.edit-icon {
+.edit-icon{
     position: absolute;
     height: 22px;
     width: 22px;
@@ -176,12 +173,12 @@ input::placeholder {
     transition: all 300ms ease-in-out;
 }
 
-.edit-icon:hover {
+.edit-icon:hover{
     transform: translateY(-2px);
     cursor: pointer;
 }
 
-.activity-list li.false {
+.activity-list li.false{
     content: "";
 }
 
@@ -200,7 +197,7 @@ input::placeholder {
     color: red;
 }
 
-.activityDialog {
+.activityDialog{
     background: white;
     border: none;
     border-radius: 12px;
@@ -213,23 +210,23 @@ input::placeholder {
     animation-fill-mode: both;
 }
 
-@keyframes dialog-animation {
-    0% {
+@keyframes dialog-animation{
+    0%{
         transform: translateY(90px);
     }
 
-    100% {
+    100%{
         transform: translateY(0);
     }
 }
 
-.dialog-input-group {
+.dialog-input-group{
     display: flex;
     flex-direction: row;
     justify-content: center;
 }
 
-.activityDialog input {
+.activityDialog input{
     flex: 1;
     height: 40px;
     max-width: 200px;
@@ -238,20 +235,20 @@ input::placeholder {
     outline: none;
 }
 
-.activityDialog h2 {
+.activityDialog h2{
     text-align: center;
     color: var(--dark);
     padding: 6px;
 }
 
-.activity-button-form {
+.activity-button-form{
     display: flex;
     flex-direction: column;
     align-items: center;
     padding: 20px;
 }
 
-.activity-button-form button {
+.activity-button-form button{
     height: 42px;
     min-width: 50px;
     text-align: center;
@@ -262,24 +259,23 @@ input::placeholder {
     transition: all 100ms ease-in-out;
     cursor: pointer;
 }
-
-.activity-button-form button:hover {
+.activity-button-form button:hover{
     background: #74aaa8;
 }
 
-#wrong-dialog {
+#wrong-dialog{
     text-align: center;
     font-size: 12px;
     color: red;
 }
 
-.hidden {
+.hidden{
     display: none;
 }
 
-#auth-section {
+#auth-section{
     display: flex;
-    flex-direction: column;
+    flex-direction:column;
 }
 
 #user-info {
@@ -301,7 +297,7 @@ input::placeholder {
     color: white;
 }
 
-#button-login {
+#button-login{
     height: 32px;
     min-width: 40px;
     text-align: center;
@@ -312,7 +308,7 @@ input::placeholder {
     transition: all 100ms ease-in-out;
 }
 
-#button-logout {
+#button-logout{
     height: 32px;
     min-width: 40px;
     text-align: center;
@@ -324,16 +320,16 @@ input::placeholder {
     transition: all 100ms ease-in-out;
 }
 
-#button-login:hover {
+#button-login:hover{
     background: #74aaa8;
 }
 
-#button-logout:hover {
+#button-logout:hover{
     background: #74aaa8;
 }
 
 
-#close-dialog {
+#close-dialog{
     position: relative;
     top: 0;
     left: 0;
@@ -342,13 +338,11 @@ input::placeholder {
 
 
 @media (max-width: 450px) {
-
-
+   
+    
     .main-card {
-        width: 99%;
-        /* Deja de tener 400px fijos */
-        min-height: 80vh;
-        /* Toma un poco más de altura en móviles */
+        width: 99%; /* Deja de tener 400px fijos */
+        min-height: 80vh; /* Toma un poco más de altura en móviles */
     }
 
     /* 2. El input tiene un max-width de 200px. Lo liberamos para que ocupe todo el espacio libre que le da el Flexbox */
@@ -359,14 +353,12 @@ input::placeholder {
     /* 3. Evitamos que el modal se salga de la pantalla */
     .activityDialog {
         width: 72%;
-        box-sizing: border-box;
-        /* Evita que el padding sume ancho extra */
+        box-sizing: border-box; /* Evita que el padding sume ancho extra */
     }
 
     .activityDialog input {
         max-width: 100%;
     }
-
     .activityDialog h2 {
         font-size: larger;
     }
@@ -393,4 +385,258 @@ input::placeholder {
         font-size: 12px;
     }
 
+}
+
+/* ---- Cards ---- */
+.card-selector {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 0 20px 12px;
+}
+
+.card-chips {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.card-chip {
+    flex: 0 0 auto;
+    height: 30px;
+    padding: 0 14px;
+    border: 0.09rem solid #5b8f8d;
+    border-radius: 15px;
+    background: #ffffff;
+    color: #3f6464;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 150ms ease-in-out;
+}
+
+.card-chip:hover {
+    background: #e4efee;
+}
+
+.card-chip.active {
+    background: #3f6464;
+    border-color: #3f6464;
+    color: #ffffff;
+}
+
+.card-selector-button {
+    flex: 0 0 auto;
+    height: 30px;
+    padding: 0 10px;
+    border: none;
+    border-radius: 8px;
+    background: #e4efee;
+    color: #3f6464;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 150ms ease-in-out;
+}
+
+.card-selector-button:hover {
+    background: #c7dedd;
+}
+
+.cardDialog {
+    background: white;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 0 10px #1c272765;
+    animation: dialog-animation 400ms ease-in-out 20ms both;
+}
+
+.cardDialog h2 {
+    text-align: center;
+    color: var(--dark);
+    padding: 6px;
+}
+
+.cardDialog input[type="text"] {
+    flex: 1;
+    height: 40px;
+    max-width: 200px;
+    border-radius: 8px;
+    border: 0.09rem solid #5b8f8d;
+    outline: none;
+}
+
+.day-checks-title {
+    text-align: center;
+    font-size: 13px;
+    color: #3f6464;
+    margin: 14px 0 6px;
+}
+
+.day-checks {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px 14px;
+}
+
+.day-checks label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.day-checks input {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    max-width: none;
+    accent-color: #51807F;
+}
+
+.card-dialog-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 20px 20px 10px;
+}
+
+.card-dialog-actions button {
+    height: 42px;
+    min-width: 50px;
+    padding: 0 16px;
+    border: none;
+    border-radius: 8px;
+    background: #51807F;
+    color: #ffffff;
+    transition: all 100ms ease-in-out;
+    cursor: pointer;
+}
+
+.card-dialog-actions button:hover {
+    background: #74aaa8;
+}
+
+#card-delete-button {
+    height: 32px;
+    background: transparent;
+    color: #b3261e;
+    font-size: 13px;
+}
+
+#card-delete-button:hover {
+    background: #fbe9e7;
+}
+
+#card-error {
+    text-align: center;
+    font-size: 12px;
+    color: red;
+}
+
+#close-card-dialog {
+    cursor: pointer;
+}
+
+@media (max-width: 450px) {
+    .cardDialog {
+        width: 80%;
+        box-sizing: border-box;
+    }
+}
+
+/* Sin barra de scroll visible (el scroll sigue funcionando) */
+.day-tabs,
+.card-chips {
+    scrollbar-width: none;
+}
+
+.day-tabs::-webkit-scrollbar,
+.card-chips::-webkit-scrollbar {
+    display: none;
+}
+
+.day-checks-hint {
+    text-align: center;
+    font-size: 12px;
+    color: #6b8a89;
+    margin: 8px 0 0;
+}
+
+/* ---- Mover tareas ---- */
+.move-icon {
+    position: absolute;
+    height: 22px;
+    width: 22px;
+    background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2351807F' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 12h14M13 6l6 6-6 6'/></svg>");
+    background-size: cover;
+    background-position: center;
+    right: 70px;
+    top: 12px;
+    cursor: pointer;
+    transition: all 300ms ease-in-out;
+}
+
+.move-icon:hover {
+    transform: translateY(-2px);
+}
+
+.list-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+#button-next-day {
+    height: 30px;
+    margin-top: 12px;
+    padding: 0 12px;
+    border: none;
+    border-radius: 8px;
+    background: #e4efee;
+    color: #3f6464;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 150ms ease-in-out;
+}
+
+#button-next-day:hover {
+    background: #c7dedd;
+}
+
+.move-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 6px 10px 0;
+}
+
+.move-fields label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 13px;
+    color: #3f6464;
+}
+
+.move-fields label.hidden {
+    display: none;
+}
+
+.move-fields select {
+    height: 40px;
+    padding: 0 8px;
+    border: 0.09rem solid #5b8f8d;
+    border-radius: 8px;
+    background: #ffffff;
+    font-size: 14px;
+    outline: none;
+}
+
+#close-move-dialog {
+    cursor: pointer;
 }

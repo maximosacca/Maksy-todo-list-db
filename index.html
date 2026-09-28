@@ -18,6 +18,11 @@
         <div class="main-card">
             <div class="card-header">
                 <h1>To-Do List</h1>
+                <div class="card-selector">
+                    <div class="card-chips" id="card-chips"></div>
+                    <button type="button" id="button-new-card" class="card-selector-button" title="Nueva card">+</button>
+                    <button type="button" id="button-card-settings" class="card-selector-button">Configurar</button>
+                </div>
                 <nav class="day-tabs" id="day-tabs">
                     <button type="button" class="day-tab" data-day="1">Lun</button>
                     <button type="button" class="day-tab" data-day="2">Mar</button>
@@ -33,6 +38,9 @@
                 </div>
             </div>
             <div class="card-body">
+                <div class="list-actions">
+                    <button type="button" id="button-next-day" class="hidden">Pasar todas al próximo día</button>
+                </div>
                 <ul class="activity-list">
                 </ul>
                 <dialog class="activityDialog">
@@ -47,6 +55,43 @@
                 </dialog>
             </div>
         </div>
+        <dialog class="cardDialog" id="card-dialog">
+            <span id="close-card-dialog">Cerrar</span>
+            <h2 id="card-dialog-title">Nueva card</h2>
+            <div class="dialog-input-group">
+                <input type="text" id="card-name-input" placeholder="Nombre de la card..." maxlength="30">
+            </div>
+            <p class="day-checks-title">Días activos</p>
+            <div class="day-checks">
+                <label><input type="checkbox" value="1" checked> Lun</label>
+                <label><input type="checkbox" value="2" checked> Mar</label>
+                <label><input type="checkbox" value="3" checked> Mié</label>
+                <label><input type="checkbox" value="4" checked> Jue</label>
+                <label><input type="checkbox" value="5" checked> Vie</label>
+                <label><input type="checkbox" value="6" checked> Sáb</label>
+                <label><input type="checkbox" value="0" checked> Dom</label>
+            </div>
+            <p class="day-checks-hint">Sin días marcados, la card es una lista simple.</p>
+            <div class="card-dialog-actions">
+                <button type="button" id="card-save-button">Guardar</button>
+                <button type="button" id="card-delete-button" class="hidden">Borrar card</button>
+            </div>
+        </dialog>
+        <dialog class="cardDialog" id="move-dialog">
+            <span id="close-move-dialog">Cerrar</span>
+            <h2>Mover tarea</h2>
+            <div class="move-fields">
+                <label id="move-card-field">Card
+                    <select id="move-card-select"></select>
+                </label>
+                <label id="move-day-field">Día
+                    <select id="move-day-select"></select>
+                </label>
+            </div>
+            <div class="card-dialog-actions">
+                <button type="button" id="move-save-button">Mover</button>
+            </div>
+        </dialog>
     </main>
 
     <script src="https://www.gstatic.com/firebasejs/8.9.1/firebase-app.js"></script>
