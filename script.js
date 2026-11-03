@@ -1,5 +1,6 @@
 import { login, logout } from "./auth.js"
 import { getUUID } from "./utils.js"
+import { isConnected, getUserId as getHabiticaUserId, connect as connectHabitica, disconnect as disconnectHabitica, fetchStats, scoreUp } from "./habitica.js"
 import { insert, getItems, deleteItems, markItem, updateTask, insertCard, getCards, updateCard, deleteCard, assignOrphanTasks, updateItems } from "./firebase.js"
 
 
@@ -70,6 +71,25 @@ const progressText = document.querySelector("#day-progress-text")
 const progressFill = document.querySelector("#progress-fill")
 let menuTask = null
 
+const habiticaButton = document.querySelector("#button-habitica")
+const habiticaDialog = document.querySelector("#habitica-dialog")
+const habiticaUserInput = document.querySelector("#habitica-user-input")
+const habiticaTokenInput = document.querySelector("#habitica-token-input")
+const habiticaStatus = document.querySelector("#habitica-status")
+const habiticaSaveButton = document.querySelector("#habitica-save-button")
+const habiticaDisconnectButton = document.querySelector("#habitica-disconnect-button")
+const closeHabiticaDialog = document.querySelector("#close-habitica-dialog")
+const rpgBar = document.querySelector("#rpg-bar")
+const rpgLevel = document.querySelector("#rpg-level")
+const rpgHpFill = document.querySelector("#rpg-hp-fill")
+const rpgHpText = document.querySelector("#rpg-hp-text")
+const rpgXpFill = document.querySelector("#rpg-xp-fill")
+const rpgXpText = document.querySelector("#rpg-xp-text")
+const rpgGold = document.querySelector("#rpg-gold")
+const toast = document.querySelector("#toast")
+let habiticaStats = null
+let toastTimer = null
+
 firebase.auth().onAuthStateChanged(user => {
     if (user) {
         currentUser = user
@@ -87,6 +107,8 @@ async function init() {
     buttonLogout.classList.remove("hidden");
     appMain.classList.remove("hidden");
     userInfo.classList.remove("hidden");
+    habiticaButton.classList.remove("hidden");
+    refreshHabiticaStats();
 
     userInfo.innerHTML = `
   <img src="${currentUser.photoURL}" width="32" />
@@ -371,6 +393,8 @@ function hideUI() {
     buttonLogout.classList.add("hidden")
     appMain.classList.add("hidden")
     userInfo.classList.add("hidden")
+    habiticaButton.classList.add("hidden")
+    rpgBar.classList.add("hidden")
     activityList.innerHTML = ""
 }
 
@@ -508,6 +532,113 @@ editableLinkInput.addEventListener("keydown", (e) => {
 
 editableButton.addEventListener("click", saveEdit)
 
+// ---------- Habitica (XP, niveles, oro) ----------
+
+const fmt = (n) => Number(n.toFixed(1))
+
+function showToast(message) {
+    toast.textContent = message
+    toast.classList.remove("hidden")
+    clearTimeout(toastTimer)
+    toastTimer = setTimeout(() => toast.classList.add("hidden"), 2500)
+}
+
+function renderRpgBar() {
+    rpgBar.classList.toggle("hidden", !habiticaStats)
+    if (!habiticaStats) return;
+    const s = habiticaStats
+    const pct = (value, max) => `${Math.max(0, Math.min(100, (value / max) * 100))}%`
+    rpgLevel.textContent = `Nv ${s.lvl}`
+    rpgHpFill.style.width = pct(s.hp, s.maxHealth)
+    rpgHpText.textContent = `${Math.ceil(s.hp)}/${s.maxHealth}`
+    rpgXpFill.style.width = pct(s.exp, s.toNextLevel)
+    rpgXpText.textContent = `${Math.floor(s.exp)}/${s.toNextLevel}`
+    rpgGold.textContent = Math.floor(s.gp)
+}
+
+async function refreshHabiticaStats() {
+    if (!isConnected()) {
+        habiticaStats = null
+        renderRpgBar()
+        return;
+    }
+    try {
+        habiticaStats = await fetchStats()
+    } catch (error) {
+        console.error(error)
+        habiticaStats = null
+    }
+    renderRpgBar()
+}
+
+// Se premia una sola vez por tarea (task.rewarded), así destildar no resta ni se puede "farmear"
+async function rewardTask(task) {
+    if (!isConnected()) return;
+    task.rewarded = true
+    try {
+        const before = habiticaStats
+        const data = await scoreUp()
+        updateTask(task.id, { rewarded: true }, currentUser.uid).catch(console.error)
+        const levelUp = !!before && data.lvl > before.lvl
+        const xp = before ? data.exp - before.exp : 0
+        const gold = before ? data.gp - before.gp : 0
+        habiticaStats = { ...before, hp: data.hp, exp: data.exp, gp: data.gp, lvl: data.lvl }
+        if (levelUp || !before) await refreshHabiticaStats()
+        else renderRpgBar()
+        if (levelUp) showToast(`¡Subiste al nivel ${data.lvl}!`)
+        else if (!before) showToast("¡XP sumado!")
+        else showToast(`+${fmt(xp)} XP · +${fmt(gold)} oro`)
+    } catch (error) {
+        console.error(error)
+        task.rewarded = false
+        showToast("No se pudo sumar XP en Habitica")
+    }
+}
+
+habiticaButton.addEventListener("click", () => {
+    const connected = isConnected()
+    habiticaUserInput.value = getHabiticaUserId()
+    habiticaTokenInput.value = ""
+    habiticaStatus.textContent = connected ? "Conectado." : ""
+    habiticaSaveButton.textContent = connected ? "Reconectar" : "Conectar"
+    habiticaDisconnectButton.classList.toggle("hidden", !connected)
+    habiticaDialog.showModal()
+});
+
+closeHabiticaDialog.addEventListener("click", () => habiticaDialog.close());
+
+habiticaSaveButton.addEventListener("click", async () => {
+    const userId = habiticaUserInput.value.trim()
+    const token = habiticaTokenInput.value.trim()
+    if (!userId || !token) {
+        habiticaStatus.textContent = "Completá el User ID y el API Token."
+        return;
+    }
+    habiticaStatus.textContent = "Conectando..."
+    habiticaSaveButton.disabled = true
+    try {
+        habiticaStats = await connectHabitica(userId, token)
+        renderRpgBar()
+        habiticaDialog.close()
+        showToast("Habitica conectado")
+    } catch (error) {
+        console.error(error)
+        habiticaStatus.textContent = error instanceof TypeError
+            ? "No se pudo conectar (¿sin internet o bloqueo de CORS?)."
+            : `No se pudo conectar: ${error.message}`
+    } finally {
+        habiticaSaveButton.disabled = false
+    }
+});
+
+habiticaDisconnectButton.addEventListener("click", () => {
+    disconnectHabitica()
+    habiticaStats = null
+    renderRpgBar()
+    habiticaDialog.close()
+    showToast("Habitica desconectado")
+});
+
 function isVisibleTask(task) {
     return task.cardId === selectedCardId && (hasNoDays() || (task.dayOfWeek ?? new Date().getDay()) === selectedDay)
 }
@@ -556,7 +687,9 @@ activityList.addEventListener("click", async (e) => {
             console.error(error)
             task.completed = !task.completed
             renderTasks()
+            return;
         }
+        if (task.completed && !task.rewarded) rewardTask(task)
         return;
     }
     const menuButton = e.target.closest(".menu-button")
