@@ -1,6 +1,6 @@
 import { login, logout } from "./auth.js"
 import { getUUID } from "./utils.js"
-import { insert, getItems, deleteItems, markItem, updateText, insertCard, getCards, updateCard, deleteCard, assignOrphanTasks, updateItems } from "./firebase.js"
+import { insert, getItems, deleteItems, markItem, updateTask, insertCard, getCards, updateCard, deleteCard, assignOrphanTasks, updateItems } from "./firebase.js"
 
 
 const userInfo = document.querySelector("#user-info")
@@ -18,6 +18,8 @@ const activityDialog = document.querySelector(".activityDialog")
 const editableInput = document.querySelector("#editable-activity-input")
 
 const editableButton = document.querySelector(".editable-activity-button")
+
+const editableLinkInput = document.querySelector("#editable-link-input")
 
 const buttonLogin = document.querySelector("#button-login");
 
@@ -61,6 +63,12 @@ const moveDaySelect = document.querySelector("#move-day-select")
 const moveSaveButton = document.querySelector("#move-save-button")
 const closeMoveDialog = document.querySelector("#close-move-dialog")
 const nextDayButton = document.querySelector("#button-next-day")
+const taskMenu = document.querySelector("#task-menu")
+const cardTitleText = document.querySelector("#card-title-text")
+const dayProgress = document.querySelector("#day-progress")
+const progressText = document.querySelector("#day-progress-text")
+const progressFill = document.querySelector("#progress-fill")
+let menuTask = null
 
 firebase.auth().onAuthStateChanged(user => {
     if (user) {
@@ -120,6 +128,9 @@ function renderDayTabs() {
         const day = Number(btn.dataset.day)
         btn.classList.toggle("hidden", card ? !card.activeDays.includes(day) : false)
         btn.classList.toggle("active", day === selectedDay)
+        btn.classList.toggle("today", day === new Date().getDay())
+        const pending = tasks.filter((t) => t.cardId === selectedCardId && (t.dayOfWeek ?? new Date().getDay()) === day && !t.completed).length
+        btn.innerHTML = DAY_SHORT[day] + (pending > 0 ? `<span class="tab-count">${pending}</span>` : "")
     })
 }
 
@@ -133,6 +144,8 @@ function renderCards() {
         chip.textContent = card.name
         cardChips.appendChild(chip)
     })
+    const selected = getSelectedCard()
+    cardTitleText.textContent = selected ? selected.name : "To-Do List"
 }
 
 function refreshCardsUI() {
@@ -408,125 +421,180 @@ async function loadTask() {
 }
 
 function renderTasks() {
+    closeTaskMenu()
     let html = "";
     tasks
         // Las tareas viejas que no tengan día asignado se muestran en "hoy" en vez de desaparecer
-        .filter((task) => task.cardId === selectedCardId && (hasNoDays() || (task.dayOfWeek ?? new Date().getDay()) === selectedDay))
+        .filter(isVisibleTask)
         .forEach((task) => {
             html += `
-    <li class="${task.completed}" data-id="${task.id}">
+    <li class="${task.completed}${task.link ? " has-link" : ""}" data-id="${task.id}">
+        <button type="button" class="check-button" data-id="${task.id}" aria-label="Marcar como hecha"></button>
         <span data-id="${task.id}">${task.text}</span>
-        <span class="delete-icon" data-id="${task.id}"></span>
-        <span class="edit-icon" data-id="${task.id}"></span>
-        <span class="move-icon" data-id="${task.id}" title="Mover a"></span>
+        ${task.link ? `<button type="button" class="link-button" data-id="${task.id}" title="Abrir link" aria-label="Abrir link"></button>` : ""}
+        <button type="button" class="menu-button" data-id="${task.id}" title="Opciones" aria-label="Opciones de la tarea"></button>
     </li> 
     `;
         });
     activityList.innerHTML = html;
     updateNextDayButton()
+    renderDayTabs()
+    updateProgress()
 }
 
-editableInput.addEventListener("keydown", async (e) => {
-    let task = editableTasks
-    if (e.key === "Enter") {
-        if (editableInput.value.trim() != "") {
-            if (editableInput.value.trim() != task.text) {
-                let item = task.id
-                let text = editableInput.value
-                await updateText(item, text, currentUser.uid)
-                loadTask()
-                activityDialog.close()
-            } else {
-                if (document.body.querySelector("#wrong-dialog") === null) {
-                    let wrongDialog = document.createElement("p")
-                    wrongDialog.textContent = "El texto ingresado es igual a la tarea anterior"
-                    wrongDialog.id = "wrong-dialog"
-                    document.querySelector(".dialog-h2").appendChild(wrongDialog)
-                    setTimeout(() => {
-                        wrongDialog.remove()
-                    }, 1500)
-                }
-            }
-        } else {
-            if (document.body.querySelector("#wrong-dialog") === null) {
-                let wrongDialog = document.createElement("p")
-                wrongDialog.textContent = "Ingresa un texto valido"
-                wrongDialog.id = "wrong-dialog"
-                document.querySelector(".dialog-h2").appendChild(wrongDialog)
-                setTimeout(() => {
-                    wrongDialog.remove()
-                }, 1500)
-            }
-        }
+function showEditError(message) {
+    if (document.body.querySelector("#wrong-dialog") === null) {
+        const wrongDialog = document.createElement("p")
+        wrongDialog.textContent = message
+        wrongDialog.id = "wrong-dialog"
+        document.querySelector(".dialog-h2").appendChild(wrongDialog)
+        setTimeout(() => wrongDialog.remove(), 1500)
     }
+}
+
+// "" = sin link, null = link inválido. Solo se aceptan http/https.
+function normalizeLink(value) {
+    const raw = value.trim()
+    if (raw === "") return ""
+    const withScheme = /^[a-z][a-z0-9+.-]*:\/\//i.test(raw) ? raw : `https://${raw}`
+    try {
+        const url = new URL(withScheme)
+        if (url.protocol !== "http:" && url.protocol !== "https:") return null
+        return url.href
+    } catch {
+        return null
+    }
+}
+
+function openEditDialog(task) {
+    editableTasks = task
+    editableInput.value = task.text
+    editableLinkInput.value = task.link ?? ""
+    activityDialog.showModal()
+}
+
+function openTaskLink(task) {
+    const safeLink = normalizeLink(task.link ?? "")
+    if (safeLink) window.open(safeLink, "_blank", "noopener,noreferrer")
+}
+
+async function saveEdit() {
+    const task = editableTasks
+    if (!task) return;
+    const text = editableInput.value.trim()
+    if (text === "") return showEditError("Ingresa un texto valido")
+    const link = normalizeLink(editableLinkInput.value)
+    if (link === null) return showEditError("Ingresa un link valido")
+    if (text === task.text && link === (task.link ?? "")) return showEditError("No hay cambios para guardar")
+    try {
+        await updateTask(task.id, { text, link }, currentUser.uid)
+        task.text = text
+        task.link = link
+        renderTasks()
+        activityDialog.close()
+    } catch (error) {
+        console.error(error)
+        showEditError("No se pudo guardar")
+    }
+}
+
+editableInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") saveEdit()
 })
 
-editableButton.addEventListener("click", async (e) => {
-    let task = editableTasks
-    if (editableInput.value.trim() != "") {
-        if (editableInput.value.trim() != task.text) {
-            let item = task.id
-            let text = editableInput.value
-            await updateText(item, text, currentUser.uid)
-            loadTask()
-            activityDialog.close()
-        } else {
-            if (document.body.querySelector("#wrong-dialog") === null) {
-                let wrongDialog = document.createElement("p")
-                wrongDialog.textContent = "El texto ingresado es igual a la tarea anterior"
-                wrongDialog.id = "wrong-dialog"
-                document.querySelector(".dialog-h2").appendChild(wrongDialog)
-                setTimeout(() => {
-                    wrongDialog.remove()
-                }, 1500)
-            }
-        }
-    } else {
-        if (document.body.querySelector("#wrong-dialog") === null) {
-            let wrongDialog = document.createElement("p")
-            wrongDialog.textContent = "Ingresa un texto valido"
-            wrongDialog.id = "wrong-dialog"
-            document.querySelector(".dialog-h2").appendChild(wrongDialog)
-            setTimeout(() => {
-                wrongDialog.remove()
-            }, 1500)
-        }
-    }
+editableLinkInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") saveEdit()
 })
+
+editableButton.addEventListener("click", saveEdit)
+
+function isVisibleTask(task) {
+    return task.cardId === selectedCardId && (hasNoDays() || (task.dayOfWeek ?? new Date().getDay()) === selectedDay)
+}
+
+function updateProgress() {
+    const visible = tasks.filter(isVisibleTask)
+    dayProgress.classList.toggle("hidden", visible.length === 0)
+    if (visible.length === 0) return;
+    const done = visible.filter((t) => t.completed).length
+    progressText.textContent = `${done} de ${visible.length} ${visible.length === 1 ? "hecha" : "hechas"}`
+    progressFill.style.width = `${(done / visible.length) * 100}%`
+}
+
+function closeTaskMenu() {
+    taskMenu.classList.add("hidden")
+    menuTask = null
+}
+
+function openTaskMenu(button, task) {
+    if (menuTask && menuTask.id === task.id) {
+        closeTaskMenu()
+        return;
+    }
+    menuTask = task
+    taskMenu.classList.remove("hidden")
+    const rect = button.getBoundingClientRect()
+    const width = taskMenu.offsetWidth
+    const height = taskMenu.offsetHeight
+    const left = Math.max(8, Math.min(rect.right - width, window.innerWidth - width - 8))
+    const top = rect.bottom + 4 + height > window.innerHeight - 8 ? rect.top - height - 4 : rect.bottom + 4
+    taskMenu.style.left = `${left}px`
+    taskMenu.style.top = `${top}px`
+}
 
 activityList.addEventListener("click", async (e) => {
-    let elementList = e.target.closest("li")
-    if (!elementList) return;
-    let task = tasks.find(t => elementList.dataset.id == t.id)
-    if (e.target.classList.contains("delete-icon")) {
+    const li = e.target.closest("li")
+    if (!li) return;
+    const task = tasks.find((t) => li.dataset.id == t.id)
+    if (!task) return;
+    if (e.target.closest(".check-button")) {
         try {
-            let item = task.id
-            e.target.parentElement.remove()
-            await deleteItems(item, currentUser.uid)
-            loadTask()
-        } catch (error) {
-            console.error(error)
-            loadTask()
-        }
-    } else if (e.target.classList.contains("edit-icon")) {
-        console.log("modal")
-        activityDialog.showModal()
-        editableInput.value = task.text
-        editableTasks = task
-    } else if (e.target.classList.contains("move-icon")) {
-        openMoveDialog(task)
-    } else {
-        try {
-            e.target.closest("li").classList.toggle("true")
-            e.target.closest("li").classList.toggle("false")
-            let item = task.id
             task.completed = !task.completed
-            await markItem(item, task.completed, currentUser.uid)
+            renderTasks()
+            await markItem(task.id, task.completed, currentUser.uid)
         } catch (error) {
             console.error(error)
+            task.completed = !task.completed
+            renderTasks()
+        }
+        return;
+    }
+    const menuButton = e.target.closest(".menu-button")
+    if (menuButton) {
+        openTaskMenu(menuButton, task)
+        return;
+    }
+    if (e.target.closest(".link-button")) {
+        openTaskLink(task)
+        return;
+    }
+    openEditDialog(task)
+});
+
+taskMenu.addEventListener("click", async (e) => {
+    const action = e.target.closest("button")?.dataset.action
+    const task = menuTask
+    closeTaskMenu()
+    if (!task || !action) return;
+    if (action === "move") {
+        openMoveDialog(task)
+    } else if (action === "delete") {
+        tasks = tasks.filter((t) => t.id !== task.id)
+        renderTasks()
+        try {
+            await deleteItems(task.id, currentUser.uid)
+        } catch (error) {
+            console.error(error)
+            loadTask()
         }
     }
 });
+
+document.addEventListener("click", (e) => {
+    if (!e.target.closest("#task-menu") && !e.target.closest(".menu-button")) closeTaskMenu()
+});
+window.addEventListener("resize", closeTaskMenu);
+window.addEventListener("scroll", closeTaskMenu, true);
 
 closingModalSpam.addEventListener("click", function () {
     activityDialog.close()

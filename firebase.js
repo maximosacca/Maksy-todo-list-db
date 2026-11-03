@@ -181,3 +181,23 @@ export async function updateItems(ids, data, uid) {
         throw new Error(error)
     }
 }
+
+
+// Actualiza campos de una tarea (texto, link, etc.)
+export async function updateTask(item, data, uid) {
+    let docId;
+    try {
+        const doc = await db.collection("todos").where("id", "==", item).where("userid", "==", uid).get();
+
+        doc.forEach(i => {
+            docId = i.id;
+        })
+
+        await db
+            .collection("todos")
+            .doc(docId)
+            .update(data);
+    } catch (error) {
+        throw new Error(error)
+    }
+}

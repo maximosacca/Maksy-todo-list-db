@@ -8,7 +8,7 @@
 </head>
 <body>
     
-    <header id="auth-section" style="text-align: center; margin: 20px 0;">
+    <header id="auth-section" style="text-align: center; margin: 12px 0;">
         <button id="button-login">Iniciar sesión con Google</button>
         <button id="button-logout" class="hidden">Cerrar sesión</button>
         <div id="user-info"></div>
@@ -17,11 +17,16 @@
     <main id="app-main" class="hidden">
         <div class="main-card">
             <div class="card-header">
-                <h1>To-Do List</h1>
+                <div class="card-title">
+                    <h1 id="card-title-text">To-Do List</h1>
+                    <button type="button" id="button-card-settings" class="icon-button" title="Configurar card" aria-label="Configurar card">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    </button>
+                </div>
                 <div class="card-selector">
                     <div class="card-chips" id="card-chips"></div>
                     <button type="button" id="button-new-card" class="card-selector-button" title="Nueva card">+</button>
-                    <button type="button" id="button-card-settings" class="card-selector-button">Configurar</button>
+                    
                 </div>
                 <nav class="day-tabs" id="day-tabs">
                     <button type="button" class="day-tab" data-day="1">Lun</button>
@@ -39,21 +44,34 @@
             </div>
             <div class="card-body">
                 <div class="list-actions">
+                    <div class="day-progress hidden" id="day-progress">
+                        <span id="day-progress-text"></span>
+                        <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+                    </div>
                     <button type="button" id="button-next-day" class="hidden">Pasar todas al próximo día</button>
                 </div>
                 <ul class="activity-list">
                 </ul>
                 <dialog class="activityDialog">
                     <spam id="close-dialog">Cerrar</spam>
-                    <h2 class="dialog-h2">Ingresa la nueva tarea</h2>
+                    <h2 class="dialog-h2">Editar tarea</h2>
                     <div class="dialog-input-group">
                         <input type="text" name="editable-activity-input" id="editable-activity-input" placeholder="Edita tu tarea...">
                     </div>
+                    <div class="dialog-input-group dialog-link-group">
+                        <input type="text" inputmode="url" id="editable-link-input" placeholder="Link (opcional)...">
+                    </div>
                     <form method="dialog" class="activity-button-form">
-                        <button type="button" class="editable-activity-button">Editar</button>
+                        <button type="button" class="editable-activity-button">Guardar</button>
                     </form>
                 </dialog>
             </div>
+        </div>
+        <p class="card-hint">Hacé click en una tarea para editarla (texto y link). Para marcarla como hecha, usá la casilla de la izquierda.</p>
+        <div class="task-menu hidden" id="task-menu">
+            
+            <button type="button" data-action="move">Mover a…</button>
+            <button type="button" data-action="delete">Borrar</button>
         </div>
         <dialog class="cardDialog" id="card-dialog">
             <span id="close-card-dialog">Cerrar</span>
